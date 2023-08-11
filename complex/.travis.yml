@@ -1,0 +1,25 @@
+language: generic
+sudo: required
+
+services:
+  - docker
+
+before_install:
+  - docker build -t caiohbs/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true caiohbs/react-test npm test
+
+after_success:
+  - docker build -t caiohbs/multi-client ./client
+  - docker build -t caiohbs/multi-nginx ./nginx
+  - docker build -t caiohbs/multi-server ./server
+  - docker build -t caiohbs/multi-worker ./worker
+  # Docker Login
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_Id" --password-stdin
+  # Push images to Docker Hub
+  - docker push caiohbs/multi-client
+  - docker push caiohbs/multi-nginx
+  - docker push caiohbs/multi-server
+  - docker push caiohbs/multi-workes
+      
